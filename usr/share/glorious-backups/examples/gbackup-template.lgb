@@ -37,6 +37,6 @@ if [ $? -eq 0 ]; then
     exit 0
 else
     gbackup-log-failure
-    gbackup-log-error-to-file ${TXN_CREATE_DUMP}
+    gbackup-log-error-to-file "${SERVICE}" "${TXN_CREATE_DUMP}"
     exit 1
 fi

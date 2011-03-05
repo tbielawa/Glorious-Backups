@@ -48,7 +48,7 @@ done
 # [3] Copy the results of each backup script to the backup server
 # And change the owner and permissions....
 gbackup-log-info "Changing ownership of the files to 'backup'"
-TXN_CHOWN_BACKUPS=$(chown -R backup:50001  ${BACKUP_STORAGE}/*)
+TXN_CHOWN_BACKUPS=$(chown -R root:root  ${BACKUP_STORAGE}/*)
 
 if [ "$?" -eq "0" ]; then
     gbackup-log-info "Changed ownership of ${BACKUP_STORAGE}/* to backup user/group"
@@ -79,7 +79,8 @@ RSYNCFLAGS="--recursive --copy-links --perms --owner --group --hard-links --time
 ################################
 # Do rsync
 gbackup-log-info "Running rsync"
-TXN_RSYNC_PASS=$(rsync $RSYNCFLAGS $BACKUP_STORAGE/* $RSYNCSERVER::$RSYNCPATH)
+# TXN_RSYNC_PASS=$(rsync $RSYNCFLAGS $BACKUP_STORAGE/* $RSYNCSERVER::$RSYNCPATH)
+TXN_RSYNC_PASS=$(echo "This is not really rsync, just a dummy with a 0 return status")
 if [ "$?" -eq "0" ]; then
     gbackup-log-info "Successfully completed rsync transfer"
     gbackup-log-info "Rsync output: ${TXN_RSYNC_PASS}"
@@ -92,7 +93,8 @@ fi
 ################################
 # Need to delete the verified backups before leaving
 gbackup-log-info "Cleaning up glorious backups"
-TXN_CLEAN=$(rm -fR ${BACKUP_STORAGE}/*)
+# TXN_CLEAN=$(rm -fR ${BACKUP_STORAGE}/*)
+TXN_CLEAN=$(echo "Not really, just a placeholder until we can modularize each section.")
 
 if [ "$?" -eq "0" ]; then
     gbackup-log-info "Gloriously deleted everything under ${BACKUP_STORAGE}/"

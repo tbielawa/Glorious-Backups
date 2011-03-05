@@ -12,7 +12,7 @@
 
 # These depend on the variable SERVICE being set in the calling
 # script. Example: SERVICE="svn" or SERVICE="rt"
-# This is always a lowercase string. See: /projects/backups
+# This is always a lowercase string.
 
 # At the top because it *has* to be
 # Used by logging mechanisms below.
@@ -140,7 +140,8 @@ gbackup-log-failure() {
 # check for during the run of the backup check script. Only use to log
 # errors during dumping and other archiving activities.
 gbackup-log-error-to-file() {
-    ERROR=${1}
+    SERVICE=${1}
+    ERROR=${2}
     EF=`gbackup-error-file ${SERVICE}`
     HEADER="SERVICE FAILURE DURING BACKUPS: ${SERVICE}/`hostname`"
     TIMESTAMP="DATE ERROR OCCURRED AT: `date`"
