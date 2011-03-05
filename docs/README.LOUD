@@ -1,0 +1,86 @@
+lcsee-glorious-backups for LOUD
+---------------------------------
+
+INTRODUCTION
+------------
+
+This package is used to GLORIOUSLY backup services via a centralized system which
+isolates outside information from the utilities which actually prep backup data to
+be moved.  Essentially, you have a series of scripts in /etc/gbackups.d/ which are
+run to create the backup data and place it neatly in /srv/lcsee-backups/.  After
+this is done, gloriously-backup rsyncs all the data in that directory to the
+backups file server (designated in LDAP via: cn=backups).  Information is
+isolated such that the backup generation scripts in /etc/gbackups.d/ don't know
+where data is being placed or sent to, and gloriously-backup doesn't know what
+utilities will run.  This prevents a problem of generality and makes it easy to
+keep all backup utilities uniform.
+
+
+SCRIPTS: /etc/gbackups.d/
+-------------------------
+
+Scripts placed in /etc/gbackups.d/ that end in .lgb (see the glorious acronym?)
+are executed by gloriously-backup each time it executes.  The purpose of these
+scripts is to actually do the backup process (ie. mysqldump, slapcat, etc.) and
+place their final backup data in /srv/lcsee-backups/ ready for gloriously-backup
+to rsync to the backup file server.  These scripts need not do anything more
+than this, and do not need to know where they're actually placing the data nor
+what file server they're being placed on.  This is all provided by the native
+glory library functions that must be sourced in each script.  A good idea is to
+have the following header in each script (where "SERVICE NAME" is replaced with
+the actual service, ie. rt, svn, ldap, etc.):
+
+--- START CODE ---
+
+#!/bin/bash
+
+SERVICE="SERVICE NAME"
+
+# Include glorious backups library
+if [ -e /usr/lib/glory ]; then
+    . /usr/lib/glory
+else
+    echo "Glorious backups library not found."
+    echo "Are you sure that lcsee-glorious-backups is installed?"
+    apt-cache policy lcsee-glorious-backups | egrep "(Installed|Candidate|Unable)"
+    exit 1;
+fi
+
+--- END CODE ---
+
+From here, native functions are provided which provide the local directory to
+data in, as well as providing file names for current day-of-week tagged dump
+files, bzip and gzip files.  Those functions are described in the next section.
+
+
+NATIVE GLORY FUNCTIONS
+----------------------
+
+TODO: Write these...
+
+NAME: 
+PARAMETERS:
+RETURNS: 
+DESCRIPTION: 
+
+
+GLORY HOLES
+-----------
+
+This section outlines potential bugs or holes in the glorious backup system.
+
+* Currently, most systems utilize a standard "backup stuff, toss it in
+  /srv/lcsee-backups/" method.  However, some other systems (ie. minid) use
+  an alternative approach (ie. placing a symlink to /srv/bronze/).  Because
+  of this, the rsync flags in gloriously-backup include --follow-symlinks,
+  thus if symlinks are not carefully checked for loops, this could break the
+  backup system.
+
+* Most systems toss a single file into /srv/lcsee-backups/ for each day,
+  however some others (ie. wv3c) include multiple files.  These are tossed
+  into an additional directory named data/.  This is accomplished by
+  performing a sed on functions which return a full path.  Because of this,
+  concurrency must be maintained in maintenance of this package.
+
+
+ -- Timothy Bielawa (Shaggy) <tbielawa@csee.wvu.edu>, Wed, 28 Apr 2010 17:07:16 -0400

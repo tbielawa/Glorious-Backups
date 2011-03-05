@@ -1,0 +1,4 @@
+MAILTO=root@localhost
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+0 3 * * *  root   /usr/bin/gloriously-backup >> /var/log/glorious-backups.log 2>&1

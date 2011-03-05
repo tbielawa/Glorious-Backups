@@ -1,0 +1,159 @@
+# /usr/lib/glory for Glorious Backups Systems -*- shell-script -*-
+#
+# Library file to use in a backup script
+# Please use this for uniformity
+
+# HOW TO USE THIS
+# At the beginning of a backup script you need to source this file
+# 
+# . /usr/lib/glory
+#
+# Now you can call the functions below just like command line programs
+
+# These depend on the variable SERVICE being set in the calling
+# script. Example: SERVICE="svn" or SERVICE="rt"
+# This is always a lowercase string. See: /projects/backups
+
+# At the top because it *has* to be
+# Used by logging mechanisms below.
+# General use is discouraged.
+gbackup-log() {
+    MSG=${1}
+    logger -t "[GBACKUP]" "${MSG}"
+}
+
+# General use logging.
+# Use of log-info() is encouraged.
+gbackup-log-info() {
+    # ${1} = General message to log
+    MSG="[${SERVICE}] INFO: ${1}"
+    gbackup-log "${MSG}"
+}
+
+# General error logging.
+# May contain logic and handlers in the future.
+# Use of log-error is encouraged.
+gbackup-log-error() {
+    # ${1} = Error message to log
+    MSG="[${SERVICE}] ERROR: ${1}"
+    gbackup-log "${MSG}"
+}
+
+# Generate a string reprepsenting a dump path.
+#
+# Call like DUMPPATH=`gbackup-dumppath service-name`
+#
+# Example output: /srv/gbackups/rt/rt001
+gbackup-dumppath() {
+    SERVICE=${1}
+    echo "/srv/gbackups/${SERVICE}/`hostname`"
+}
+
+# Generate a string representing a gzipped dump file
+#
+# Call like DUMPFILE=`gbackup-gzdumpfile`
+#
+# Example output: /srv/gbackups/rt/rt001/rt-SUN.tar.gz
+gbackup-gzdumpfile() {
+    local DOW=`date +%a`
+    local DF="`gbackup-dumppath ${SERVICE}`/${SERVICE}-${DOW}.tar.gz"
+    MSG="Using dump file ${DF}"
+    gbackup-log-info "${MSG}"
+    echo ${DF}
+}
+
+# Generate a string representing a bzipped dump file
+#
+# Call like DUMPFILE=`gbackup-bzdumpfile`
+#
+# Example output: /srv/gbackups/request-tracker/rt001/rt-SUN.tar.bz2
+gbackup-bzdumpfile() {
+    local DOW=`date +%a`
+    local DF="`gbackup-dumppath ${SERVICE}`/${SERVICE}-${DOW}.tar.bz2"
+    MSG="Using dump file ${DF}"
+    gbackup-log-info "${MSG}"
+    echo ${DF}
+}
+
+# Generate a string representing a plain dump file
+#
+# Call like DUMPFILE=`gbackup-dumpfile [ext]`
+# (where [ext] can be omitted, "txt", "sql", etc.)
+#
+# Example output: /srv/gbackups/request-tracker/rt001/rt-SUN
+# Example output: /srv/gbackups/request-tracker/rt001/rt-SUN.sql
+gbackup-dumpfile() {
+    local DOW=`date +%a`
+    local DF="`gbackup-dumppath ${SERVICE}`/${SERVICE}-${DOW}"
+    if [ "$1" != "" ]; then
+         DF="${DF}.$1"
+    fi
+    MSG="Using dump file ${DF}"
+    gbackup-log-info "${MSG}"
+    echo ${DF}
+}
+
+# Generate a string representing the path for a file to log error
+# messages to.
+#
+# *WILL* be integrated into backup-checks.
+gbackup-error-file() {
+    SERVICE=${1}
+    local DOW=`date +%a`
+    local EF="`gbackup-dumppath ${SERVICE}`/${SERVICE}-${DOW}.error.log"
+    MSG="Using error log file ${EF}"
+    gbackup-log-info "${MSG}"
+    echo ${EF}
+}
+
+# Create a dump directory. Return a string representing this
+# directory.
+#
+# Call like `gbackup-mkdir`
+#
+# Example output: /srv/gbackups/svn/svn001
+gbackup-mkdir() {
+    DUMPPATH=`gbackup-dumppath ${SERVICE}`
+    mkdir -p ${DUMPPATH}
+    MSG="Using dump path ${DUMPPATH}"
+    gbackup-log-info "${MSG}"
+    echo ${DUMPPATH}
+}
+
+gbackup-log-start() {
+    MSG="Preparing to create the dump file"
+    gbackup-log-info "${MSG}"
+}
+
+gbackup-log-success() {
+    MSG="Successfully created dump file"
+    gbackup-log-info "${MSG}"
+}
+
+# This gets logged to the syslog for safe keeping
+gbackup-log-failure() {
+    MSG="Failed to created dump file"
+    gbackup-log-error "${MSG}"
+}
+
+# Use to log errors during backup creation to a file. The file is
+# check for during the run of the backup check script. Only use to log
+# errors during dumping and other archiving activities.
+gbackup-log-error-to-file() {
+    ERROR=${1}
+    EF=`gbackup-error-file ${SERVICE}`
+    HEADER="SERVICE FAILURE DURING BACKUPS: ${SERVICE}/`hostname`"
+    TIMESTAMP="DATE ERROR OCCURRED AT: `date`"
+
+    # Best to not question it
+    # Read up on here-documents here:
+    # http://tldp.org/LDP/abs/html/x17471.html
+    cat >> ${EF} <<EOF
+${HEADER}
+${TIMESTAMP}
+-----------------------BEGIN ERROR MESSAGE----------------------
+${ERROR}
+------------------------END ERROR MESSAGE-----------------------
+EOF
+
+}

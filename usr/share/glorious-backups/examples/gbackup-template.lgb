@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Backup script for use in LCSEE Systems.
+# Depends on the lcsee-glorious-backups package.
+#
+# This script backs up SVN services.
+# SVN is pretty simple to back up. We just make a tar.gz of the whole
+# thing.
+
+# Delete this line and the next after you've added this to your package and customized it.
+exit 0;
+
+SERVICE="svn"
+# For SVN we'll define a SERVICEPATH
+SERVICEPATH="/srv/svn"
+
+# Include glorious backups library
+if [ -e /usr/lib/glory ]; then
+    . /usr/lib/glory
+else
+    echo "Glorious backups library not found."
+    echo "Are you sure that lcsee-glorious-backups is installed?"
+    apt-cache policy lcsee-glorious-backups | egrep "(Installed|Candidate|Unable)"
+    exit 1;
+fi
+
+# Prep the dump zone
+DUMPPATH=`gbackup-mkdir`
+# Name the tar.gz you'll be creating with our standard template
+DUMPFILE=`gbackup-gzdumpfile`
+
+gbackup-log-start
+
+# Create the actual dump file
+TXN_CREATE_DUMP=$(tar -czf ${DUMPFILE} ${SERVICEPATH})
+
+# Transaction checking
+if [ $? -eq 0 ]; then
+    gbackup-log-success
+    exit 0
+else
+    gbackup-log-failure
+    gbackup-log-error-to-file ${TXN_CREATE_DUMP}
+    exit 1
+fi

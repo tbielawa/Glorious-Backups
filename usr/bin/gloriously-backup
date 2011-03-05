@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# This is the workhorse of the glorious-backups package.
+# Bow to it
+
+# Include glorious backups library
+if [ -e /usr/lib/glory ]; then
+    . /usr/lib/glory
+else
+    echo "Glorious backups library not found."
+    echo "Are you sure that glorious-backups is installed?"
+    exit 1;
+fi
+
+BACKUP_STORAGE="/srv/gbackups"
+BACKUP_STATE=0
+SERVICE="global"
+TXN_GLOBAL_DUMP=`gbackup-mkdir`
+gbackup-log-info "glorious-backups initialized at `date`"
+
+########################################################################
+# [1] Make list of the dump scripts to run.
+gbackup-log-info "Glorously making a list of backups to run"
+SCRIPTS=`ls -1 /etc/gbackups.d/*.lgb`
+NUMJOBS=$(echo $SCRIPTS | wc -w)
+
+if [ "${NUMJOBS}" -eq "0" ]; then
+    gbackup-log-info "No backup scripts to run. Exiting. Gloriously!"
+    exit 0
+else
+    gbackup-log-info "Found ${NUMJOBS} glorious script(s) to run"
+fi
+
+########################################################################
+# [2] Run each backup script in turn
+gbackup-log-info "Running batch of backup scripts"
+for job in ${SCRIPTS}; do
+    gbackup-log-info "Running ${job} (Start time: `date`)"
+    TXN_BACKUP_JOB=$(bash ${job})
+    if [ $? -ne 0 ]; then
+        gbackup-log-failure "Backup job ${job} failed"
+        gbackup-log-error-to-file "${TXN_BACKUP_JOB}"
+    fi
+    gbackup-log-info "Ran ${job} (End time: `date`)"
+done
+
+########################################################################
+# [3] Copy the results of each backup script to the backup server
+# And change the owner and permissions....
+gbackup-log-info "Changing ownership of the files to 'backup'"
+TXN_CHOWN_BACKUPS=$(chown -R backup:50001  ${BACKUP_STORAGE}/*)
+
+if [ "$?" -eq "0" ]; then
+    gbackup-log-info "Changed ownership of ${BACKUP_STORAGE}/* to backup user/group"
+else
+    gbackup-log-error "Could not change ownership of ${BACKUP_STORAGE} to backup user/group"
+    gbackup-log-error-to-file "${TXN_CHOWN_BACKUPS}"
+    exit 1;
+fi
+
+################################
+gbackup-log-info "Changing permissions to 770 on ${BACKUP_STORAGE}/*"
+TXN_CHMOD_PERMISSIONS=$(chmod -R 770 ${BACKUP_STORAGE}/*)
+
+if [ "$?" -eq "0" ]; then
+    gbackup-log-info "Changed permissions to 770 on ${BACKUP_STORAGE}/*"
+else
+    gbackup-log-error "Couldn't change permissions to 770 on ${BACKUP_STORAGE}/*"
+    gbackup-log-error-to-file "${TXN_CHMOD_PERMISSIONS}"
+    exit 1;
+fi
+
+################################
+# Define the rsync server, its module, and its flags
+RSYNCSERVER=destination.host.name
+RSYNCPATH=backups
+RSYNCFLAGS="--recursive --copy-links --perms --owner --group --hard-links --times --verbose --numeric-ids --archive" # DO NOT ADD --delete
+
+################################
+# Do rsync
+gbackup-log-info "Running rsync"
+TXN_RSYNC_PASS=$(rsync $RSYNCFLAGS $BACKUP_STORAGE/* $RSYNCSERVER::$RSYNCPATH)
+if [ "$?" -eq "0" ]; then
+    gbackup-log-info "Successfully completed rsync transfer"
+    gbackup-log-info "Rsync output: ${TXN_RSYNC_PASS}"
+else
+    gbackup-log-error "Failed to complete rsync transfer"
+    gbackup-log-error-to-file "${TXN_RSYNC_PASS}"
+    exit 1;
+fi
+
+################################
+# Need to delete the verified backups before leaving
+gbackup-log-info "Cleaning up glorious backups"
+TXN_CLEAN=$(rm -fR ${BACKUP_STORAGE}/*)
+
+if [ "$?" -eq "0" ]; then
+    gbackup-log-info "Gloriously deleted everything under ${BACKUP_STORAGE}/"
+    echo ""
+    gbackup-log "[PRAISE] Glorious backups performed gloriously and has reached completion."
+    exit ${BACKUP_STATE}
+else
+    gbackup-log-error "WARNING: Failed to gloriously delete ${BACKUP_STORAGE}/*"
+    gbackup-log-error-to-file "${TXN_CLEAN}"
+    echo ""
+    gbackup-log-error "Glorious backups has failed you on this day. Exiting, shamefully."
+    exit 1;
+fi
