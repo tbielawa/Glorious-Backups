@@ -21,8 +21,8 @@ gbackup-log-info "glorious-backups initialized at `date`"
 ########################################################################
 # [1] Make list of the dump scripts to run.
 gbackup-log-info "Glorously making a list of backups to run"
-SCRIPTS=`ls -1 /etc/gbackups.d/*.lgb`
-NUMJOBS=$(echo $SCRIPTS | wc -w)
+NUMJOBS=$(find /etc/gbackups.d/ -type f -name "*.lgb" | wc -l)
+#NUMJOBS=$(echo $SCRIPTS | wc -w)
 
 if [ "${NUMJOBS}" -eq "0" ]; then
     gbackup-log-info "No backup scripts to run. Exiting. Gloriously!"
@@ -34,7 +34,7 @@ fi
 ########################################################################
 # [2] Run each backup script in turn
 gbackup-log-info "Running batch of backup scripts"
-for job in ${SCRIPTS}; do
+for job in /etc/gbackups.d/*.lgb; do
     gbackup-log-info "Running ${job} (Start time: `date`)"
     TXN_BACKUP_JOB=$(bash ${job})
     if [ $? -ne 0 ]; then

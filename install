@@ -1,0 +1,5 @@
+#!/bin/bash
+
+install -d /etc/gbackups.d
+install -m 655 usr/bin/gloriously-backup /usr/bin
+install usr/lib/glory /usr/lib/

@@ -1,26 +1,23 @@
 #!/bin/bash
 
-# Backup script for use in LCSEE Systems.
-# Depends on the lcsee-glorious-backups package.
+# Backup script for use in Glorious Backup systems.
 #
-# This script backs up SVN services.
-# SVN is pretty simple to back up. We just make a tar.gz of the whole
-# thing.
-
+# This is a condensed version of generic-directories.lgb.
+#
+# This script backs up bulk directory data.
 # Delete this line and the next after you've added this to your package and customized it.
 exit 0;
 
-SERVICE="svn"
-# For SVN we'll define a SERVICEPATH
-SERVICEPATH="/srv/svn"
+SERVICE="bulkdump"
+# For  we'll define a SERVICEPATH
+SERVICEPATH="/srv/data"
 
 # Include glorious backups library
 if [ -e /usr/lib/glory ]; then
     . /usr/lib/glory
 else
     echo "Glorious backups library not found."
-    echo "Are you sure that lcsee-glorious-backups is installed?"
-    apt-cache policy lcsee-glorious-backups | egrep "(Installed|Candidate|Unable)"
+    echo "Are you sure that glorious-backups is installed?"
     exit 1;
 fi
 

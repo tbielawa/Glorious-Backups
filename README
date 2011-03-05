@@ -4,6 +4,41 @@ lcsee-glorious-backups for LOUD
 INTRODUCTION
 ------------
 
+If you want to better understand the methodology used by Glorious
+Backups we need to explain what sparked it's inception.
+
+
+Raison d'être - Reason for Existence
+====================================
+
+* Story about an svn server failing in the last few weeks of a course
+  and there being no backups because the backup report tool was
+  retelling lies. There was no logs of anything happening. All
+  services had their own backup routines. Each being heavilty
+  dependent upon the current geometry of the rapidly changing
+  infrastructure. *
+
+
+Attributes Describing the new System Requirements
+=================================================
+
+ - Ignorant
+ - Uniform
+ - Test-driven
+ - Chatty
+
+
+
+
+
+
+
+
+
+
+
+
+
 This package is used to GLORIOUSLY backup services via a centralized system which
 isolates outside information from the utilities which actually prep backup data to
 be moved. Essentially, you have a series of scripts in /etc/gbackups.d/ which are
