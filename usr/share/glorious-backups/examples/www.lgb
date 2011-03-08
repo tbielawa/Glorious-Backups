@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Backup script for use in Glorious Backup systems.
+#
+# Example of how to back up your www root
+SERVICE="www"
+# Path to our data
+SERVICEPATH="/var/www"
+
+# Include glorious backups library
+if [ -e /usr/lib/glory ]; then
+    . /usr/lib/glory
+else
+    echo "Glorious backups library not found."
+    echo "Are you sure that glorious-backups is installed?"
+    exit 1;
+fi
+
+# Prep the dump zone
+DUMPPATH=`gbackup-mkdir`
+# Name the tar.gz you'll be creating with our standard template
+DUMPFILE=`gbackup-bzdumpfile`
+
+gbackup-log-start
+
+# Create the actual dump file
+TXN_CREATE_DUMP=$(tar -c ${SERVICEPATH} | pbzip2 -c > ${DUMPFILE})
+
+# Transaction checking
+if [ $? -eq 0 ]; then
+    gbackup-log-success
+    exit 0
+else
+    gbackup-log-failure
+    gbackup-log-error-to-file "${SERVICE}" "${TXN_CREATE_DUMP}"
+    exit 1
+fi
