@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Backup script for use in Glorious Backup systems.
+#
+# Backs up default LDAP database
+SERVICE="slapd"
+
+# Include glorious backups library
+if [ -e /usr/lib/glory ]; then
+    . /usr/lib/glory
+else
+    echo "Glorious backups library not found."
+    echo "Are you sure that glorious-backups is installed?"
+    exit 1;
+fi
+
+# Prep the dump zone
+DUMPPATH=`gbackup-mkdir`
+DUMPFILE=`gbackup-dumpfile ldif`
+gbackup-log-start
+
+# Save a list of installed RPMs
+TXN_CREATE_DUMP=$(slapcat -l ${DUMPFILE})
+
+# Transaction checking
+if [ $? -eq 0 ]; then
+    gbackup-log-success
+    exit 0
+else
+    gbackup-log-failure
+    gbackup-log-error-to-file "${SERVICE}" "${TXN_CREATE_DUMP}"
+    exit 1
+fi
