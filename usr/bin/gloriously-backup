@@ -12,7 +12,16 @@ else
     exit 1;
 fi
 
-BACKUP_STORAGE="/srv/gbackups"
+SYSCONF_PATHS=/etc/gbackups-sysconf.d
+BACKUP_SCRIPTS=/etc/gbackups.d
+# We'll create these here for now so the system can easily set itself
+# up on the first run
+mkdir -p ${SYSCONF_PATHS} ${BACKUP_SCRIPTS}
+
+# Backup scripts target directory
+BACKUP_STORAGE=/srv/gbackups
+
+# State of known failures during backup routine
 BACKUP_STATE=0
 SERVICE="global"
 TXN_GLOBAL_DUMP=`gbackup-mkdir`
