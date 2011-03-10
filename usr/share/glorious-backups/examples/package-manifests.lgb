@@ -2,8 +2,8 @@
 
 # Backup script for use in Glorious Backup systems.
 #
-# This tracks installed RPMs
-SERVICE="packages-installed"
+# This tracks installed packages
+SERVICE="package-manifests"
 
 # Include glorious backups library
 if [ -e /usr/lib/glory ]; then
@@ -19,7 +19,10 @@ DUMPPATH=`gbackup-mkdir`
 DUMPFILE=`gbackup-dumpfile txt`
 gbackup-log-start
 
-# Save a list of installed RPMs
+# Save a list of installed packags
+# A debian/ubuntu method:
+# TXN_CREATE_DUMP=$(dpkg --get-selections | sort > ${DUMPFILE})
+# And a fedora/redhat method:
 TXN_CREATE_DUMP=$(rpm -qa | sort > ${DUMPFILE})
 
 # Transaction checking
