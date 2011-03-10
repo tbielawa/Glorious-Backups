@@ -12,6 +12,8 @@ else
     exit 1;
 fi
 
+# This is where backups will go
+RSYNCSERVER=SOME_SERVER_HERE
 SYSCONF_PATHS=/etc/gbackups-sysconf.d
 BACKUP_SCRIPTS=/etc/gbackups.d
 # We'll create these here for now so the system can easily set itself
@@ -81,15 +83,13 @@ fi
 
 ################################
 # Define the rsync server, its module, and its flags
-RSYNCSERVER=destination.host.name
-RSYNCPATH=backups
-RSYNCFLAGS="--recursive --copy-links --perms --owner --group --hard-links --times --verbose --numeric-ids --archive" # DO NOT ADD --delete
+RSYNCMODULE=gbackups
+RSYNCFLAGS="--verbose --progress -a"
 
 ################################
 # Do rsync
 gbackup-log-info "Running rsync"
-# TXN_RSYNC_PASS=$(rsync $RSYNCFLAGS $BACKUP_STORAGE/* $RSYNCSERVER::$RSYNCPATH)
-TXN_RSYNC_PASS=$(echo "This is not really rsync, just a dummy with a 0 return status")
+TXN_RSYNC_PASS=$(rsync $RSYNCFLAGS $BACKUP_STORAGE/* $RSYNCSERVER::$RSYNCMODULE)
 if [ "$?" -eq "0" ]; then
     gbackup-log-info "Successfully completed rsync transfer"
     gbackup-log-info "Rsync output: ${TXN_RSYNC_PASS}"

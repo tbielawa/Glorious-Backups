@@ -1,9 +1,9 @@
 #!/bin/bash
 find . -name *~ -delete
 install -d /etc/gbackups.d
-install -m 655 usr/bin/gloriously-backup /usr/bin
+install -m 744 usr/bin/gloriously-backup /usr/bin
 install usr/lib/glory /usr/lib/
 install -d /usr/share/glorious-backups/examples
 install -t /usr/share/glorious-backups/examples ./usr/share/glorious-backups/examples/*
-
+cp etc/cron.d/* /etc/cron.d/
 cp -t /etc/gbackups.d/ ./mine/*.lgb
