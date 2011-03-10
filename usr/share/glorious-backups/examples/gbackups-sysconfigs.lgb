@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Backup script for use in Glorious Backup systems.
+#
+# Example of how to back up your www root
+SERVICE="sysconfigs"
+
+# Include glorious backups library
+if [ -e /usr/lib/glory ]; then
+    . /usr/lib/glory
+else
+    echo "Glorious backups library not found."
+    echo "Are you sure that glorious-backups is installed?"
+    exit 1;
+fi
+
+# Prep the dump zone
+DUMPPATH=`gbackup-mkdir`
+# Name the tar.gz you'll be creating with our standard template
+DUMPFILE=`gbackup-bzdumpfile`
+
+gbackup-log-start
+
+gbackup-log-info "Creating temp file to gather sysconfig paths into"
+TMP_FILE=`mktemp`
+gbackup-log-info "Created sysconfig dump file ${TMP_FILE}"
+
+CONFIG_PATHS_COUNT=`ls -1 /etc/gbackups-sysconf.d/ | wc -l`
+gbackup-log-info "Found ${CONFIG_PATHS_COUNT} sysconfig paths to backup"
+gbackup-log-info "Dumping sysconfig paths"
+TXN_DUMP_CONF_PATHS=$(cat /etc/gbackups-sysconf.d/* > ${TMP_FILE})
+# Create the actual dump file
+TXN_CREATE_DUMP=$(tar -T ${TMP_FILE} -cjf ${DUMPFILE})
+DUMP_STATUS=$?
+
+gbackup-log-info "Cleaning up dump file"
+TNX_CLEAN_DUMP=$(rm -f ${TMP_FILE})
+# Transaction checking
+if [ ${DUMP_STATUS} -eq 0 ]; then
+    gbackup-log-success
+    exit 0
+else
+    gbackup-log-failure
+    gbackup-log-error-to-file "${SERVICE}" "${TXN_CREATE_DUMP}"
+    exit 1
+fi
