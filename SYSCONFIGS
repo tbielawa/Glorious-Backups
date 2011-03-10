@@ -1,0 +1,25 @@
+Included in the examples is an lgb script for backing up system
+configuration settings called "gbackups-sysconf.d". Installing and
+configuring it is simple. Here's an example showing how.
+
+  1. Make the directory the sysconf.d configs are stored in:
+     mkdir -p /etc/gbackups-sysconf.d
+
+  2. Install the backup script into the glorious backups scripts directory:
+     cp /usr/share/glorious-backups/examples/gbackups-sysconf.lgb /etc/gbackups.d/
+
+  3. Create a configuration to backup all of /etc/httpd:
+     echo "/etc/httpd" > /etc/gbackups-sysconf.d/httpd
+
+  4. Create a configuration to handle Glorious Backups:
+     echo "/etc/gbackups.d" > /etc/gbackups-sysconf.d/gbackups
+
+Config file format:
+
+  One or more files or directory paths in a plain text file, stored in
+    /etc/gbackups-sysconf.d
+
+
+Testing:
+
+  As root run 'gloriously-backup'
