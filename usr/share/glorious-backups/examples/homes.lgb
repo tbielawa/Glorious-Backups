@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Glorious Backups system template file which demonstrates how to
+# backup simple directory structures.
+
+# Service is a short tag used to group the data from related systems
+# together. This is combined with the hostname later on when
+# generating paths.
+SERVICE="homedata"
+# For bulk data we'll define a SERVICEPATH. A service path is what we
+# call the root of a simple data source.
+#
+# Every back up script will have a service path if written well. Some
+# times you will know the service path in advance, as is the case with
+# bulk data.
+#
+# Other times you'll want to use the functions provided in the glory
+# library to generate a temporary service path to hold things like
+# database dumps.
+SERVICEPATH="/home"
+
+# Include glorious backups library
+if [ -e /usr/lib/glory ]; then
+    . /usr/lib/glory
+else
+    echo "Glorious backups library not found."
+    echo "Are you sure that glorious-backups is installed?"
+    exit 1;
+fi
+
+# Prep the dump zone.
+#
+# This generates a directory in the target dumping directory specific
+# to the SERVICE being backed up. Paths generated with the archive
+# functions like gzdumpfile will fail if this is not called ahead of
+# time.
+DUMPPATH=`gbackup-mkdir`
+# A few options exist for generating the name of a to-be-created
+# archive file, this is just one. See the glory library for a complete
+# listing.
+DUMPFILE=`gbackup-gzdumpfile`
+
+gbackup-log-start
+
+# Create the actual dump file
+#
+# This block demonstrates what we mean by Glorious Backups being a
+# "chatty, test-driven" system. Idealy every configuration setting and
+# every system resource used would be generated and logged. Every
+# transaction should be logged and there should be a command to verify
+# the result of each command against the expected result.
+TXN_CREATE_DUMP=$(tar -czf ${DUMPFILE} ${SERVICEPATH})
+
+# Transaction checking
+if [ $? -eq 0 ]; then
+    gbackup-log-success
+    exit 0
+else
+    gbackup-log-failure
+    gbackup-log-error-to-file "${SERVICE}" "${TXN_CREATE_DUMP}"
+    exit 1
+fi
